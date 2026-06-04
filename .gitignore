@@ -1,1 +1,11 @@
 .env
+
+# Provider binaries 
+.terraform/ 
+
+# State files (store these in a remote backend, not Git) 
+terraform.tfstate 
+terraform.tfstate.backup 
+
+# Var files often contain secrets
+*.tfvars
