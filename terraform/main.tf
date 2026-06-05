@@ -13,7 +13,7 @@ provider "google" {
 }
 
 resource "google_storage_bucket" "raw_data" {
-  name     = "olist-pipeline-raw-data"
+  name     = "flight-pipeline-raw-data"
   location = "US"
 
   uniform_bucket_level_access = true
@@ -28,7 +28,7 @@ resource "google_storage_bucket" "raw_data" {
   }
 }
 
-resource "google_bigquery_dataset" "olist" {
-  dataset_id = "olist_pipeline"
+resource "google_bigquery_dataset" "flights" {
+  dataset_id = "flight_pipeline"
   location   = "US"
 }

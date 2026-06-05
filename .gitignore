@@ -1,11 +1,18 @@
 .env
+**/.env
+.kaggle
+**/.kaggle/
 
-# Provider binaries 
-.terraform/ 
+# Provider binaries
+.terraform/
 
-# State files (store these in a remote backend, not Git) 
-terraform.tfstate 
-terraform.tfstate.backup 
+# State files (store these in a remote backend, not Git)
+terraform.tfstate
+terraform.tfstate.backup
 
 # Var files often contain secrets
 *.tfvars
+
+# Python
+venv
+virtualenv
