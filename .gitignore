@@ -1,1 +1,4 @@
+.kaggle
+.terraform
 node_modules/
+terraform.tfstate*
