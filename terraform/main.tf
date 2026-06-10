@@ -80,10 +80,33 @@ resource "google_bigquery_table" "bronze_economy" {
   }
 }
 
+# === GitHub PAT for Dataform git remote ===
+# References the existing GITHUB_PAT secret already in Secret Manager.
+# Terraform never reads or stores the token value, only its version reference.
+
+data "google_secret_manager_secret_version" "github_pat" {
+  secret = "GITHUB_PAT"
+}
+
+# Allow the Dataform service agent to read the PAT at sync time.
+data "google_project" "this" {}
+
+resource "google_secret_manager_secret_iam_member" "dataform_access" {
+  secret_id = "GITHUB_PAT"
+  role      = "roles/secretmanager.secretAccessor"
+  member    = "serviceAccount:service-${data.google_project.this.number}@gcp-sa-dataform.iam.gserviceaccount.com"
+}
+
 # === Dataform config ===
 
 resource "google_dataform_repository" "pipeline" {
   provider = google-beta
   name     = "flight_pipeline"
   region   = "us-east4"
+
+  git_remote_settings {
+    url                                 = "https://github.com/joselflima/flights.git"
+    default_branch                      = "main"
+    authentication_token_secret_version = data.google_secret_manager_secret_version.github_pat.id
+  }
 }
