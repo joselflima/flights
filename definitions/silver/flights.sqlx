@@ -1,0 +1,41 @@
+config {
+    type: "table",
+    schema: "silver",
+    description: "Cleaned flights data, joining both business and economy tiers"
+}
+
+WITH unioned AS (
+    SELECT *, 'Business' AS class FROM ${ref("business")}
+    UNION ALL
+    SELECT *, 'Economy' AS class FROM ${ref("economy")}
+),
+
+cleaned AS (
+    SELECT
+        PARSE_DATE('%d-%m-%Y', date) AS flight_date,
+        airline,
+        CONCAT(ch_code, '-', CAST(num_code AS STRING)) AS flight,
+        `from` AS source_city,
+        `to` AS destination_city,
+        class,
+        CASE
+            WHEN stop LIKE 'non%' THEN 'zero'
+            WHEN stop LIKE '1%' THEN 'one'
+            ELSE 'two_or_more'
+        END AS stops,
+        CAST(SUBSTRING(dep_time, 1, 2) AS INT64) AS dep_hour,
+        CAST(SUBSTRING(arr_time, 1, 2) AS INT64) as arr_hour,
+        ROUND(
+            (IFNULL(CAST(REGEXP_EXTRACT(time_taken, r'(\d+)h') AS INT64), 0) * 60
+             + IFNULL(CAST(REGEXP_EXTRACT(time_taken, r'(\d+)m') AS INT64), 0)) / 60.0, 2
+        ) AS duration,
+        CAST(REPLACE(price, ',', '') AS NUMERIC) AS price
+    FROM unioned
+    WHERE price IS NOT NULL
+)
+
+SELECT
+    * EXCEPT (dep_hour, arr_hour),
+    ${time_bin("dep_hour")} AS departure_time,
+    ${time_bin("arr_hour")} AS arrival_time
+FROM cleaned
