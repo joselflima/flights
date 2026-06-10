@@ -55,16 +55,40 @@ resource "google_bigquery_dataset" "gold" {
 }
 
 # === External tables in BigQuery ===
+# Raw CSVs share one schema; kept all-STRING and typed later in the silver layer.
+
+locals {
+  flights_schema = jsonencode([
+    { name = "date", type = "STRING" },
+    { name = "airline", type = "STRING" },
+    { name = "ch_code", type = "STRING" },
+    { name = "num_code", type = "STRING" },
+    { name = "dep_time", type = "STRING" },
+    { name = "from", type = "STRING" },
+    { name = "time_taken", type = "STRING" },
+    { name = "stop", type = "STRING" },
+    { name = "arr_time", type = "STRING" },
+    { name = "to", type = "STRING" },
+    { name = "price", type = "STRING" },
+  ])
+}
 
 resource "google_bigquery_table" "bronze_business" {
   dataset_id          = google_bigquery_dataset.bronze.dataset_id
   table_id            = "business"
   deletion_protection = false
+  schema              = local.flights_schema
 
   external_data_configuration {
     source_format = "CSV"
-    autodetect    = true
+    autodetect    = false
     source_uris   = ["gs://${google_storage_bucket.raw_data.name}/bronze/business.csv"]
+
+    csv_options {
+      quote                 = "\""
+      skip_leading_rows     = 1
+      allow_quoted_newlines = true
+    }
   }
 }
 
@@ -72,11 +96,18 @@ resource "google_bigquery_table" "bronze_economy" {
   dataset_id          = google_bigquery_dataset.bronze.dataset_id
   table_id            = "economy"
   deletion_protection = false
+  schema              = local.flights_schema
 
   external_data_configuration {
     source_format = "CSV"
-    autodetect    = true
+    autodetect    = false
     source_uris   = ["gs://${google_storage_bucket.raw_data.name}/bronze/economy.csv"]
+
+    csv_options {
+      quote                 = "\""
+      skip_leading_rows     = 1
+      allow_quoted_newlines = true
+    }
   }
 }
 
