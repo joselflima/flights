@@ -1,0 +1,6 @@
+config {
+    type: "declaration",
+    database: "ev-elt",
+    schema: "bronze",
+    name: "economy"
+}
